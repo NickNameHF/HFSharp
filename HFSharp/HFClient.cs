@@ -1,6 +1,9 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using HFSharp.Constants;
 using HFSharp.Extensions;
 using HFSharp.Models.Responses;
@@ -18,14 +21,14 @@ namespace HFSharp
                 throw new ArgumentNullException("accessToken");
             }
 
-            AccessToken = accessToken;
+            AuthToken = accessToken.ToBase64();
         }
 
         #endregion
 
         #region Properties
 
-        private string AccessToken { get; }
+        private string AuthToken { get; }
 
         #endregion
 
@@ -35,68 +38,69 @@ namespace HFSharp
 
         public ApiVersion GetCurrentApiVersion()
         {
-            ApiVersion result = GetRequest<ApiVersion>(string.Concat(HFConstants.BaseUrl, HFConstants.VersionUrl.Version));
+            ApiVersion result = GetRequest<ApiVersion>(HFConstants.VersionUrl.Version);
             return result;
         }
 
         public UserResponse GetUserProfile(int uid)
         {
-            UserResponse result = GetRequest<UserResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.UserUrl.User, uid));
+            UserResponse result = GetRequest<UserResponse>(string.Concat(HFConstants.UserUrl.User, uid));
             return result;
         }
 
         public UsersResponse GetUsersProfiles(int[] uids)
         {
-            string request = string.Join(",", Array.ConvertAll(uids, item => item.ToString()));
-            UsersResponse result = GetRequest<UsersResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.UsersUrl.Users, request));
+            int[] maxUids = Enumerable.Range(0, 20).ToArray();
+            string request = string.Join(",", Array.ConvertAll(maxUids, item => item.ToString()));
+            UsersResponse result = GetRequest<UsersResponse>(string.Concat(HFConstants.UsersUrl.Users, request));
             return result;
         }
 
         public CategoryResponse GetCategory(int fid)
         {
-            CategoryResponse result = GetRequest<CategoryResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.CategoryUrl.Category, fid));
+            CategoryResponse result = GetRequest<CategoryResponse>(string.Concat(HFConstants.CategoryUrl.Category, fid));
             return result;
         }
 
         public PostResponse GetPost(int pid)
         {
-            PostResponse result = GetRequest<PostResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.PostUrl.Post, pid));
+            PostResponse result = GetRequest<PostResponse>(string.Concat(HFConstants.PostUrl.Post, pid));
             return result;
         }
 
-        public ThreadResponse GetThread(int tid)
+        public ThreadResponse GetThread(int tid, int page = 1)
         {
-            ThreadResponse result = GetRequest<ThreadResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.ThreadUrl.Thread, tid));
+            ThreadResponse result = GetRequest<ThreadResponse>(string.Concat(HFConstants.ThreadUrl.Thread, tid, HFConstants.ThreadUrl.PageOption, page));
             return result;
         }
 
         public ForumResponse GetForum(int fid)
         {
-            ForumResponse result = GetRequest<ForumResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.ForumUrl.Forum, fid));
+            ForumResponse result = GetRequest<ForumResponse>(string.Concat(HFConstants.ForumUrl.Forum, fid));
             return result;
         }
 
         public PrivateMessageResponse GetPrivateMessage(int pmid)
         {
-            PrivateMessageResponse result = GetRequest<PrivateMessageResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.PrivateMessageUrl.Pm, pmid));
+            PrivateMessageResponse result = GetRequest<PrivateMessageResponse>(string.Concat(HFConstants.PrivateMessageUrl.Pm, pmid));
             return result;
         }
 
         public PmBoxResponse GetPmBox(int id)
         {
-            PmBoxResponse result = GetRequest<PmBoxResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.PrivateMessageBoxUrls.Pmbox, id));
+            PmBoxResponse result = GetRequest<PmBoxResponse>(string.Concat(HFConstants.PrivateMessageBoxUrls.Pmbox, id));
             return result;
         }
 
         public PmBoxResponse GetInbox()
         {
-            PmBoxResponse result = GetRequest<PmBoxResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.PrivateMessageBoxUrls.Inbox));
+            PmBoxResponse result = GetRequest<PmBoxResponse>(HFConstants.PrivateMessageBoxUrls.Inbox);
             return result;
         }
 
         public GroupResponse GetGroup(int id)
         {
-            GroupResponse result = GetRequest<GroupResponse>(string.Concat(HFConstants.BaseUrl, HFConstants.GroupUrl.Group, id));
+            GroupResponse result = GetRequest<GroupResponse>(string.Concat(HFConstants.GroupUrl.Group, id));
             return result;
         }
 
@@ -108,26 +112,27 @@ namespace HFSharp
 
         private T GetRequest<T>(string url)
         {
-            HttpClientHandler handler = new HttpClientHandler
-                { Credentials = new NetworkCredential(AccessToken, string.Empty) };
-
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
-
-            //request.Headers.Add(HFConstants.HeadersConstants.AuthorizationKey, string.Format(HFConstants.HeadersConstants.AuthorizationValue, AccessToken));
-            HttpClient client = new HttpClient(handler);
-            var response = client.SendAsync(request).Result;
-
-            switch ((int)response.StatusCode)
+            using (HttpClient client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }))
             {
-                case (int)HttpStatusCode.OK:
+                client.BaseAddress = new Uri(HFConstants.BaseUrl);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(HFConstants.MimeTypes.Json));
+                client.DefaultRequestHeaders.Add(HFConstants.HeadersConstants.UserAgentKey, HFConstants.HeadersConstants.UserAgentValue);
+                client.DefaultRequestHeaders.Add(HFConstants.HeadersConstants.AuthorizationKey, string.Concat(HFConstants.HeadersConstants.AuthorizationValue, AuthToken));
+
+                var response = client.GetAsync(url).Result;
+                switch ((int) response.StatusCode)
                 {
-                    var result = response.Content.ReadAsStringAsync().Result;
-                    var output = result.JsonToOjbect<T>();
-                    return output;
+                    case (int) HttpStatusCode.OK:
+                    {
+                        var result = response.Content.ReadAsStringAsync().Result;
+                        var output = result.JsonToOjbect<T>();
+                        return output;
+                    }
+                    default:
+                        HandleOtherStatusCodes(response.StatusCode);
+                        throw new HttpRequestException(string.Format(HFConstants.StatusCodeExceptions.Default,
+                            (int) response.StatusCode, response.StatusCode));
                 }
-                default:
-                    HandleOtherStatusCodes(response.StatusCode);
-                    throw new HttpRequestException(string.Format(HFConstants.StatusCodeExceptions.Default, (int)response.StatusCode, response.StatusCode));
             }
         }
 

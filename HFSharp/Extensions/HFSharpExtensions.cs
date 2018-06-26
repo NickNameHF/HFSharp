@@ -17,5 +17,10 @@ namespace HFSharp.Extensions
                 return output;
             }
         }
+
+        public static string ToBase64(this string plain) {
+            byte[] bytes = Encoding.UTF8.GetBytes(plain);
+            return Convert.ToBase64String(bytes);
+        }
     }
 }

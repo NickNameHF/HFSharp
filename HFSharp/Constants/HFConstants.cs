@@ -7,7 +7,22 @@
         public class HeadersConstants
         {
             public const string AuthorizationKey = "Authorization";
-            public const string AuthorizationValue = "Basic {0}";
+            public const string AuthorizationValue = "Basic ";
+
+            public const string UserAgentKey = "User-Agent";
+            public const string UserAgentValue = "HFSharp-1.2";
+        }
+
+        public class HttpMethods
+        {
+            public const string GET = "GET";
+            public const string POST = "POST";
+            public const string DELETE = "DELETE";
+        }
+
+        public class MimeTypes
+        {
+            public const string Json = "application/json";
         }
 
         public class StatusCodeExceptions
@@ -54,6 +69,7 @@
         public class ThreadUrl
         {
             public const string Thread = "thread/";
+            public const string PageOption = "&page=";
         }
 
         public class PostUrl

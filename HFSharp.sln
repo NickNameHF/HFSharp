@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HFSharp", "HFSharp\HFSharp.csproj", "{7682353F-9733-4D1C-B6BF-693FB56DF85E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HFSharp.Tests", "HFSharp.Tests\HFSharp.Tests.csproj", "{8B65E7EC-48A9-46CE-A41B-E7CCD3E5FF6A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7682353F-9733-4D1C-B6BF-693FB56DF85E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7682353F-9733-4D1C-B6BF-693FB56DF85E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7682353F-9733-4D1C-B6BF-693FB56DF85E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7682353F-9733-4D1C-B6BF-693FB56DF85E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B65E7EC-48A9-46CE-A41B-E7CCD3E5FF6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B65E7EC-48A9-46CE-A41B-E7CCD3E5FF6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B65E7EC-48A9-46CE-A41B-E7CCD3E5FF6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B65E7EC-48A9-46CE-A41B-E7CCD3E5FF6A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ED1159E7-14BB-4730-8A08-2995738A55FA}
+	EndGlobalSection
+EndGlobal
